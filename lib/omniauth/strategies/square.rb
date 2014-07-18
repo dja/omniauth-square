@@ -6,58 +6,27 @@ module OmniAuth
 
       option :client_options, {
         :site          => 'https://squareup.com/',
-        :authorize_url => 'https://squareup.com/oauth2/authorize',
-        :token_url     => 'https://squareup.com/oauth2/token'
+        :authorize_url => '/oauth2/authorize',
+        :token_url     => '/oauth2/token'
       }
-
-      option :access_token_options, {
-        :mode          => :query,
-        :header_format => 'OAuth %s'
-      }
-
-      option :token_params, {:parse => :json}
-
-      option :provider_ignores_state, true
-
-      def request_phase
-        options[:authorize_params] = {
-          :request_type => 'code',
-          :session      => true
-        }
-
-        super
-      end
 
       uid { raw_info['id'] }
 
       info do
-        prune!('name' => raw_info["name"], 'email' => raw_info["email"])
+        prune!(
+          :name     => raw_info["name"],
+          :email    => raw_info["email"],
+          :phone    => (raw_info["business_phone"]||{}).values.join(''),
+          :location => (raw_info["business_address"]||{})["locality"]
+        )
       end
 
       extra do
-        prune! skip_info? ? {} : {'raw_info' => raw_info}
+        { :raw_info => raw_info }
       end
 
       def raw_info
-        unless skip_info?
-          @raw_info ||= access_token.get('https://connect.squareup.com/v1/me').parsed
-        else
-          {}
-        end
-      end
-
-      def authorize_params
-        super.tap do |params|
-          %w[state].each do |v|
-            if request.params[v]
-              params[v.to_sym] = request.params[v]
-
-              # to support omniauth-oauth2's auto csrf protection
-              session['omniauth.state'] = params[:state] if v == 'state'
-            end
-          end
-
-        end
+        @raw_info ||= access_token.get('https://connect.squareup.com/v1/me').parsed
       end
 
       protected
@@ -84,7 +53,6 @@ module OmniAuth
 
       def access_token_request_payload
         params = {
-          :grant_type   => 'authorization_code',
           :code         => request.params['code'],
           :redirect_uri => callback_url
         }
