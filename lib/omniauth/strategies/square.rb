@@ -31,7 +31,7 @@ module OmniAuth
       uid { raw_info['id'] }
 
       info do
-        prune!("name"  => raw_info["name"], "email" => raw_info["email"])
+        prune!('name' => raw_info["name"], 'email' => raw_info["email"])
       end
 
       extra do
@@ -60,9 +60,20 @@ module OmniAuth
         end
       end
 
-    private
+      protected
 
       def build_access_token
+        parsed = fetch_access_token
+
+        parsed['expires_at'] = Time.parse(parsed['expires_at']).to_i
+        parsed.merge!(deep_symbolize(options.auth_token_params))
+
+        ::OAuth2::AccessToken.from_hash(client, parsed)
+      end
+
+      private
+
+      def fetch_access_token
         params = {
           :grant_type   => 'authorization_code',
           :code         => request.params['code'],
@@ -73,21 +84,17 @@ module OmniAuth
         params.merge! token_params.to_hash(:symbolize_keys => true)
 
         opts = {:raise_errors => params.delete(:raise_errors), :parse => params.delete(:parse)}
-
         headers        = params.delete(:headers)
         opts[:body]    = params
         opts[:headers] = {'Content-Type' => 'application/x-www-form-urlencoded'}
         opts[:headers].merge!(headers) if headers
 
         response = client.request(client.options[:token_method], client.token_url, opts)
-        parsed_response = response.parsed
 
         error = ::OAuth2::Error.new(response)
-        fail(error) if opts[:raise_errors] && !(parsed_response.is_a?(Hash) && parsed_response['access_token'])
+        fail(error) if opts[:raise_errors] && !(response.parsed.is_a?(Hash) && response.parsed['access_token'])
 
-        parsed_response['expires_at'] = Time.parse(parsed_response['expires_at']).to_i
-
-        ::OAuth2::AccessToken.from_hash(client, parsed_response.merge(deep_symbolize(options.auth_token_params)))
+        response.parsed
       end
 
       def prune!(hash)
