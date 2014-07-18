@@ -63,17 +63,26 @@ module OmniAuth
       protected
 
       def build_access_token
-        parsed = fetch_access_token
+        parsed_response = fetch_access_token
 
-        parsed['expires_at'] = Time.parse(parsed['expires_at']).to_i
-        parsed.merge!(deep_symbolize(options.auth_token_params))
+        parsed_response['expires_at'] = Time.parse(parsed_response['expires_at']).to_i
+        parsed_response.merge!(deep_symbolize(options.auth_token_params))
 
-        ::OAuth2::AccessToken.from_hash(client, parsed)
+        ::OAuth2::AccessToken.from_hash(client, parsed_response)
       end
 
       private
 
       def fetch_access_token
+        opts     = access_token_request_payload
+        response = client.request(client.options[:token_method], client.token_url, opts)
+        parsed   = response.parsed
+        error    = ::OAuth2::Error.new(response)
+        fail(error) if opts[:raise_errors] && !(parsed.is_a?(Hash) && parsed['access_token'])
+        parsed
+      end
+
+      def access_token_request_payload
         params = {
           :grant_type   => 'authorization_code',
           :code         => request.params['code'],
@@ -83,18 +92,16 @@ module OmniAuth
         params.merge! client.auth_code.client_params
         params.merge! token_params.to_hash(:symbolize_keys => true)
 
-        opts = {:raise_errors => params.delete(:raise_errors), :parse => params.delete(:parse)}
-        headers        = params.delete(:headers)
-        opts[:body]    = params
-        opts[:headers] = {'Content-Type' => 'application/x-www-form-urlencoded'}
+        opts = {
+          :raise_errors => params.delete(:raise_errors),
+          :parse        => params.delete(:parse),
+          :headers      => {'Content-Type' => 'application/x-www-form-urlencoded'}
+        }
+
+        headers     = params.delete(:headers)
+        opts[:body] = params
         opts[:headers].merge!(headers) if headers
-
-        response = client.request(client.options[:token_method], client.token_url, opts)
-
-        error = ::OAuth2::Error.new(response)
-        fail(error) if opts[:raise_errors] && !(response.parsed.is_a?(Hash) && response.parsed['access_token'])
-
-        response.parsed
+        opts
       end
 
       def prune!(hash)
