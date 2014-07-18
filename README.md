@@ -4,8 +4,6 @@ This gem contains the Square strategy for OmniAuth.
 
 Square uses the OAuth2 flow, you can read about it here: http://connect.squareup.com
 
-## This gem is unfinished at the moment.
-
 ## How To Use It
 
 So let's say you're using Rails, you need to add the strategy to your `Gemfile`:
@@ -28,7 +26,7 @@ Now just follow the README at: https://github.com/intridea/omniauth
 
 ## License
 
-Copyright (c) 2013 by [Daniel Archer](https://github.com/danieljacobarcher/), [Jen Aprahamian](https://github.com/jennifermarie/), [Adam Bouck](https://github.com/abouck/)
+Copyright (c) 2013 by [Daniel Archer](https://github.com/danieljacobarcher/), [Jen Aprahamian](https://github.com/jennifermarie/), [Adam Bouck](https://github.com/abouck/), [Ray Zane](https://github.com/rzane)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
