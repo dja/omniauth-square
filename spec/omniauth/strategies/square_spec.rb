@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe OmniAuth::Strategies::Square do
   before :each do
-    @request = double('Request')
+    @request = double('Request', :scheme => '', :url => '')
     @request.stub(:params) { {} }
   end
 
@@ -72,6 +72,10 @@ describe OmniAuth::Strategies::Square do
         @raw_info.delete('business_address')
         subject.info[:location].should be_nil
       end
+
+      it 'returns raw info' do
+        subject.extra[:raw_info]['business_name'].should eq("Dave's Milkshakes")
+      end
     end
   end
 
@@ -123,6 +127,36 @@ describe OmniAuth::Strategies::Square do
       @access_token.stub(:refresh_token) { 'XXX' }
       subject.credentials['refresh_token'].should be_nil
       subject.credentials.should_not have_key('refresh_token')
+    end
+  end
+
+  describe '#build_access_token' do
+    it 'converts iso8601 expires_at to an integer' do
+      now = Time.now
+      subject.stub(:fetch_access_token).and_return({'expires_at' => now.iso8601})
+      token = subject.send(:build_access_token)
+      expect(token.expires_at).to eq(now.to_i)
+    end
+  end
+
+  describe '#access_token_request_payload' do
+    before do
+      @request.stub(:params).and_return('code' => '11111')
+      subject.stub(:callback_url).and_return('http://example.com')
+    end
+
+    let!(:payload) { subject.send(:access_token_request_payload) }
+
+    it 'sets the Content-Type header' do
+      expect(payload[:headers]['Content-Type']).to eq('application/x-www-form-urlencoded')
+    end
+
+    it 'sets the redirect_uri' do
+      expect(payload[:body][:redirect_uri]).to eq('http://example.com')
+    end
+
+    it 'sets the authorization code' do
+      expect(payload[:body][:code]).to eq('11111')
     end
   end
 end
