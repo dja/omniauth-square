@@ -5,23 +5,24 @@ module OmniAuth
     class Square < OmniAuth::Strategies::OAuth2
 
       option :client_options, {
-        :site => 'https://squareup.com/',
+        :site          => 'https://squareup.com/',
         :authorize_url => 'https://squareup.com/oauth2/authorize',
-        :token_url => 'https://squareup.com/oauth2/token'
+        :token_url     => 'https://squareup.com/oauth2/token'
       }
 
       option :access_token_options, {
-        mode: :query,
-        header_format: 'OAuth %s'
+        :mode          => :query,
+        :header_format => 'OAuth %s'
       }
+
+      option :token_params, {:parse => :json}
 
       option :provider_ignores_state, true
 
-
       def request_phase
         options[:authorize_params] = {
-          request_type:  'code',
-          session:        true
+          :request_type => 'code',
+          :session      => true
         }
 
         super
@@ -30,19 +31,11 @@ module OmniAuth
       uid { raw_info['id'] }
 
       info do
-        prune!({
-          "name" => raw_info["name"],
-          "email" => raw_info["email"],
-          "country_code" => raw_info["country_code"],
-          "language_code" => raw_info["language_code"]
-        })
+        prune!("name"  => raw_info["name"], "email" => raw_info["email"])
       end
 
-      credentials do
-        hash = {'token' => access_token.token}
-        hash.merge!('token_type' => access_token.token_type)
-        hash.merge!('expires_at' => access_token.expires_at) if access_token.expires_at?
-        prune!(hash)
+      extra do
+        prune! skip_info? ? {} : {'raw_info' => raw_info}
       end
 
       def raw_info
@@ -68,6 +61,35 @@ module OmniAuth
       end
 
     private
+
+      def build_access_token
+        params = {
+          :grant_type   => 'authorization_code',
+          :code         => request.params['code'],
+          :redirect_uri => callback_url
+        }
+
+        params.merge! client.auth_code.client_params
+        params.merge! token_params.to_hash(:symbolize_keys => true)
+
+        opts = {:raise_errors => params.delete(:raise_errors), :parse => params.delete(:parse)}
+
+        headers        = params.delete(:headers)
+        opts[:body]    = params
+        opts[:headers] = {'Content-Type' => 'application/x-www-form-urlencoded'}
+        opts[:headers].merge!(headers) if headers
+
+        response = client.request(client.options[:token_method], client.token_url, opts)
+        parsed_response = response.parsed
+
+        error = ::OAuth2::Error.new(response)
+        fail(error) if opts[:raise_errors] && !(parsed_response.is_a?(Hash) && parsed_response['access_token'])
+
+        parsed_response['expires_at'] = Time.parse(parsed_response['expires_at']).to_i
+
+        ::OAuth2::AccessToken.from_hash(client, parsed_response.merge(deep_symbolize(options.auth_token_params)))
+      end
+
       def prune!(hash)
         hash.delete_if do |_, value|
           prune!(value) if value.is_a?(Hash)
