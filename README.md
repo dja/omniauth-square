@@ -8,7 +8,7 @@ Square uses the OAuth2 flow, you can read about it here: http://connect.squareup
 
 So let's say you're using Rails, you need to add the strategy to your `Gemfile`:
 
-    gem 'omniauth-square', '~> 0.9'
+    gem 'omniauth-square', '~> 1.0'
 
 You can pull it in directly from github (if you really want to) e.g.:
 
@@ -17,7 +17,10 @@ You can pull it in directly from github (if you really want to) e.g.:
 Once these are in, you need to add the following to your `config/initializers/omniauth.rb`:
 
     Rails.application.config.middleware.use OmniAuth::Builder do
-      provider :square, "consumer_key", "consumer_secret" 
+      provider :square, "consumer_key", "consumer_secret",
+      	{
+      		:connect_site  => 'https://connect.squareup.com'
+      	}
     end
 
 You will obviously have to put in your key and secret, which you get when you register your app with Square (they call them Application Key and Secret Key). 
