@@ -131,11 +131,22 @@ describe OmniAuth::Strategies::Square do
   end
 
   describe '#build_access_token' do
+    let(:token_hash) do
+      {'expires_at' => Time.now.iso8601, 'access_token' => '1111111'}
+    end
+
+    before do
+      subject.stub(:fetch_access_token).and_return(token_hash.dup)
+      @token = subject.send :build_access_token
+    end
+
     it 'converts iso8601 expires_at to an integer' do
-      now = Time.now
-      subject.stub(:fetch_access_token).and_return({'expires_at' => now.iso8601})
-      token = subject.send(:build_access_token)
-      expect(token.expires_at).to eq(now.to_i)
+      expires = Time.parse(token_hash['expires_at']).to_i
+      expect(@token.expires_at).to eq(expires)
+    end
+
+    it 'changes the clients site' do
+      expect(@token.client.site).to eq('https://connect.squareup.com')
     end
   end
 

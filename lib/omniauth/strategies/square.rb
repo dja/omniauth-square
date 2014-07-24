@@ -6,6 +6,7 @@ module OmniAuth
 
       option :client_options, {
         :site          => 'https://squareup.com/',
+        :connect_site  => 'https://connect.squareup.com',
         :authorize_url => '/oauth2/authorize',
         :token_url     => '/oauth2/token'
       }
@@ -26,7 +27,7 @@ module OmniAuth
       end
 
       def raw_info
-        @raw_info ||= access_token.get('https://connect.squareup.com/v1/me').parsed
+        @raw_info ||= access_token.get('/v1/me').parsed
       end
 
       protected
@@ -37,7 +38,9 @@ module OmniAuth
         parsed_response['expires_at'] = Time.parse(parsed_response['expires_at']).to_i
         parsed_response.merge!(deep_symbolize(options.auth_token_params))
 
-        ::OAuth2::AccessToken.from_hash(client, parsed_response)
+        connect_client = client.dup
+        connect_client.site = options.client_options.connect_site
+        ::OAuth2::AccessToken.from_hash(connect_client, parsed_response)
       end
 
       private
