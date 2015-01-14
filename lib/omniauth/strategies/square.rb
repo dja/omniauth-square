@@ -35,7 +35,7 @@ module OmniAuth
       def build_access_token
         parsed_response = fetch_access_token
 
-        parsed_response['expires_at'] = Time.parse(parsed_response['expires_at']).to_i if parsed_response['expires_at'].present?
+        parsed_response['expires_at'] = Time.parse(parsed_response['expires_at']).to_i
         parsed_response.merge!(deep_symbolize(options.auth_token_params))
 
         connect_client = client.dup
@@ -49,6 +49,9 @@ module OmniAuth
         opts     = access_token_request_payload
         response = client.request(client.options[:token_method], client.token_url, opts)
         parsed   = response.parsed
+        puts "\n\n"
+        puts response.parsed
+        puts "\n\n"
         error    = ::OAuth2::Error.new(response)
         fail(error) if opts[:raise_errors] && !(parsed.is_a?(Hash) && parsed['access_token'])
         parsed
