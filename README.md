@@ -8,7 +8,7 @@ Square uses the OAuth2 flow, you can read about it here: http://connect.squareup
 
 So let's say you're using Rails, you need to add the strategy to your `Gemfile`:
 
-    gem 'omniauth-square', '~> 1.0'
+    gem 'omniauth-square', '~> 1.0.2'
 
 You can pull it in directly from github (if you really want to) e.g.:
 
