@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe OmniAuth::Strategies::Square do
   before :each do
-    @request = double('Request', :scheme => '', :url => '')
+    @request = double('Request', :scheme => '', :url => '', :params => {}, :cookies => {}, :env => {})
     @request.stub(:params) { {} }
   end
 
@@ -147,6 +147,18 @@ describe OmniAuth::Strategies::Square do
 
     it 'changes the clients site' do
       expect(@token.client.site).to eq('https://connect.squareup.com')
+    end
+  end
+
+  describe '#request_phase' do
+    before do
+      @request.stub(:params).and_return('plan_id' => 'test_plan_id')
+      subject.stub(:old_request_phase).and_return(:something)
+    end
+
+    it 'adds `plan_id` parameter to `authorize_params`' do
+      expect { subject.request_phase }.to change { subject.options.authorize_params.plan_id }.
+        from(nil).to('test_plan_id')
     end
   end
 

@@ -30,6 +30,16 @@ module OmniAuth
         @raw_info ||= access_token.get('/v1/me').parsed
       end
 
+      alias :old_request_phase :request_phase
+
+      def request_phase
+        if request.params['plan_id']
+          options[:authorize_params][:plan_id] = request.params['plan_id']
+        end
+
+        old_request_phase
+      end
+
       protected
 
       def build_access_token
