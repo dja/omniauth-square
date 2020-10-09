@@ -29,23 +29,15 @@ describe OmniAuth::Strategies::Square do
   describe '#info' do
     before :each do
       @raw_info = {
-        "id" => "JGHJ0343",
-        "name" => "Dave Davis",
-        "email" => "dave@example.com",
-        "country_code" => "US",
-        "language_code" => "en-US",
-        "business_name" => "Dave's Milkshakes",
-        "business_address" => {
-          "address_line_1" => "1455 Market St",
-          "locality" => "San Francisco",
-          "administrative_district_level_1" => "CA",
-          "postal_code" => "94103"
-        },
-        "business_phone" => {
-          "calling_code" => "+1",
-          "number" => "4155551234"
-        },
-        "business_type" => "restaurants"
+        "merchant" => [{
+          "id" => "JGHJ0343",
+          "business_name" => "Foobar Sports",
+          "country" => "US",
+          "language_code" => "en-US",
+          "currency" => "USD",
+          "status" => "ACTIVE",
+          "main_location_id" => "DDM555V5KQPNS"
+        }]
       }
 
       subject.stub(:raw_info) { @raw_info }
@@ -53,28 +45,11 @@ describe OmniAuth::Strategies::Square do
 
     context 'when data is present in raw info' do
       it 'returns the name' do
-        subject.info[:name].should eq('Dave Davis')
-      end
-
-      it 'returns the email' do
-        subject.info[:email].should eq('dave@example.com')
-      end
-
-      it 'returns the phone number' do
-        subject.info[:phone].should eq('+14155551234')
-      end
-
-      it 'returns the user location' do
-        subject.info[:location].should eq('San Francisco')
-      end
-
-      it 'sets the location blank if business_address isnt provided' do
-        @raw_info.delete('business_address')
-        subject.info[:location].should be_nil
+        subject.info[:name].should eq('Foobar Sports')
       end
 
       it 'returns raw info' do
-        subject.extra[:raw_info]['business_name'].should eq("Dave's Milkshakes")
+        subject.extra[:raw_info]['merchant'][0]['business_name'].should eq("Foobar Sports")
       end
     end
   end
@@ -127,47 +102,6 @@ describe OmniAuth::Strategies::Square do
       @access_token.stub(:refresh_token) { 'XXX' }
       subject.credentials['refresh_token'].should be_nil
       subject.credentials.should_not have_key('refresh_token')
-    end
-  end
-
-  describe '#build_access_token' do
-    let(:token_hash) do
-      {'expires_at' => Time.now.iso8601, 'access_token' => '1111111'}
-    end
-
-    before do
-      subject.stub(:fetch_access_token).and_return(token_hash.dup)
-      @token = subject.send :build_access_token
-    end
-
-    it 'converts iso8601 expires_at to an integer' do
-      expires = Time.parse(token_hash['expires_at']).to_i
-      expect(@token.expires_at).to eq(expires)
-    end
-
-    it 'changes the clients site' do
-      expect(@token.client.site).to eq('https://connect.squareup.com')
-    end
-  end
-
-  describe '#access_token_request_payload' do
-    before do
-      @request.stub(:params).and_return('code' => '11111')
-      subject.stub(:callback_url).and_return('http://example.com')
-    end
-
-    let!(:payload) { subject.send(:access_token_request_payload) }
-
-    it 'sets the Content-Type header' do
-      expect(payload[:headers]['Content-Type']).to eq('application/x-www-form-urlencoded')
-    end
-
-    it 'sets the redirect_uri' do
-      expect(payload[:body][:redirect_uri]).to eq('http://example.com')
-    end
-
-    it 'sets the authorization code' do
-      expect(payload[:body][:code]).to eq('11111')
     end
   end
 end
