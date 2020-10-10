@@ -1,6 +1,6 @@
 # OmniAuth Square
 
-[![CI Build Status](https://secure.travis-ci.org/dja/omniauth-square.svg?branch=master)](http://travis-ci.org/dja/omniauth-square)
+[![CI Build Status](https://travis-ci.com/dja/omniauth-square.svg?branch=master)](https://travis-ci.com/dja/omniauth-square)
 
 This gem contains the Square strategy for OmniAuth.
 
