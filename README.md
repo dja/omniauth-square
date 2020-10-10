@@ -1,5 +1,7 @@
 # OmniAuth Square
 
+[![CI Build Status](https://secure.travis-ci.org/dja/omniauth-square.svg?branch=master)](http://travis-ci.org/dja/omniauth-square)
+
 This gem contains the Square strategy for OmniAuth.
 
 Square uses the OAuth2 flow, you can read about it here: http://connect.squareup.com
