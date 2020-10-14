@@ -60,7 +60,6 @@ module OmniAuth
           :redirect_uri => callback_url
         }
 
-        params.merge! client.auth_code.client_params
         params.merge! token_params.to_hash(:symbolize_keys => true)
 
         opts = {
