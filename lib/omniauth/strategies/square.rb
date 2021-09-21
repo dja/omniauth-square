@@ -74,6 +74,11 @@ module OmniAuth
         opts
       end
 
+      # for compatibility with omniauth 1.4.0
+      def callback_url
+        full_host + script_name + callback_path
+      end
+
       def prune!(hash)
         hash.delete_if do |_, value|
           prune!(value) if value.is_a?(Hash)
