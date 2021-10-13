@@ -30,13 +30,24 @@ module OmniAuth
         @raw_info ||= access_token.get('/v1/me').parsed
       end
 
+      alias :old_request_phase :request_phase
+
+      def request_phase
+        if request.params['plan_id']
+          options[:authorize_params][:plan_id] = request.params['plan_id']
+        end
+
+        old_request_phase
+      end
+
       protected
 
       def build_access_token
         parsed_response = fetch_access_token
 
         parsed_response['expires_at'] = Time.parse(parsed_response['expires_at']).to_i
-        parsed_response.merge!(deep_symbolize(options.auth_token_params))
+        auth_token_params = options.auth_token_params || {}
+        parsed_response.merge!(deep_symbolize(auth_token_params))
 
         connect_client = client.dup
         connect_client.site = options.client_options.connect_site
