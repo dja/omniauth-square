@@ -5,8 +5,8 @@ require "omniauth-square/version"
 Gem::Specification.new do |s|
   s.name        = "omniauth-square"
   s.version     = Omniauth::Square::VERSION
-  s.authors     = ["Daniel Archer", "Jennifer Aprahamian", "Adam Bouck", "Ray Zane"]
-  s.email       = ["me@dja.io", "j.aprahamian@gmail.com", "adam.j.bouck@gmail.com", "raymondzane@gmail.com"]
+  s.authors     = ["Daniel Archer", "Jennifer Aprahamian", "Adam Bouck", "Ray Zane", "Nick Robinson"]
+  s.email       = ["me@dja.io", "j.aprahamian@gmail.com", "adam.j.bouck@gmail.com", "raymondzane@gmail.com", "nrobinson13+github@gmail.com"]
   s.homepage    = "https://github.com/dja/omniauth-square"
   s.summary     = %q{Square OAuth strategy for OmniAuth}
   s.description = %q{Square OAuth strategy for OmniAuth}
